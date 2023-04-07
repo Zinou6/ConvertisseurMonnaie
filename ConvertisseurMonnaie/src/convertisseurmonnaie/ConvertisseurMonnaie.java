@@ -354,7 +354,7 @@ public class ConvertisseurMonnaie {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         JFrame fr = new JFrame("Historique");
-                        JLabel lb = new JLabel("Entre la date : ");
+                        JLabel lb = new JLabel("De : ");
                         
                         DateFormat format = new SimpleDateFormat("dd-MM-yyyy");
                         DateFormatter formatter = new DateFormatter(format);
@@ -362,11 +362,18 @@ public class ConvertisseurMonnaie {
                         JFormattedTextField tx = new JFormattedTextField(formatter);
                         tx.setValue(new java.util.Date());
                         tx.setPreferredSize(new Dimension(100,20));
+                        
+                        JLabel lb2 = new JLabel("A : ");
+                        
+                        JFormattedTextField tx2 = new JFormattedTextField(formatter);
+                        tx2.setValue(new java.util.Date());
+                        tx2.setPreferredSize(new Dimension(100,20));
+                        
                         JButton bt = new JButton("Valider");
                         bt.addActionListener(new ActionListener() {
                             public void actionPerformed(ActionEvent e){
                                 try {
-                                    historique(tx.getText());
+                                    historique(tx.getText(), tx2.getText());
                                 } catch (SQLException ex) {
                                     Logger.getLogger(ConvertisseurMonnaie.class.getName()).log(Level.SEVERE, null, ex);
                                 } catch (DocumentException ex) {
@@ -380,8 +387,10 @@ public class ConvertisseurMonnaie {
                         fr.setLayout(new FlowLayout());
                         fr.add(lb);
                         fr.add(tx);
+                        fr.add(lb2);
+                        fr.add(tx2);
                         fr.add(bt);
-                        fr.setSize(260,100);
+                        fr.setSize(320,100);
                         fr.setLocationRelativeTo(null);
                         fr.setVisible(true);
                     }
@@ -488,14 +497,14 @@ public class ConvertisseurMonnaie {
         }
     }
     
-    public static void historique(String Date) throws SQLException, FileNotFoundException, DocumentException, IOException{
+    public static void historique(String Date, String Date2) throws SQLException, FileNotFoundException, DocumentException, IOException{
         connection();
         if(conn != null){
-            String req = "SELECT * FROM conversion WHERE Date_conversion = ?";
+            String req = "SELECT * FROM conversion WHERE STR_TO_DATE(Date_conversion, '%d-%m-%Y')  BETWEEN STR_TO_DATE(?, '%d-%m-%Y') AND STR_TO_DATE(?, '%d-%m-%Y')";
             PreparedStatement pstmt = conn.prepareStatement(req);
             pstmt.setString(1, Date);
+            pstmt.setString(2, Date2);
             ResultSet rs = pstmt.executeQuery();
-            
             com.itextpdf.text.Document document = new com.itextpdf.text.Document();
             com.itextpdf.text.pdf.PdfWriter.getInstance(document, new FileOutputStream("output.pdf"));
             document.open();
